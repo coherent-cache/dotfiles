@@ -135,3 +135,11 @@ if command -v tmux > /dev/null; then
   session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || tmux new -s alpha -n main
 fi
 }
+
+tmux() {
+  if [ -n "$TMUX" ]; then
+    TMUX_NESTED=1 command tmux "$@"
+  else
+    command tmux "$@"
+  fi
+}

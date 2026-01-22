@@ -182,14 +182,10 @@ tmux_conf_theme_window_status_last_bg="$tmux_conf_theme_colour_2"
 tmux_conf_theme_window_status_last_attr="none"
 
 # status left/right sections separators
-tmux_conf_theme_left_separator_main=""
-tmux_conf_theme_left_separator_sub="|"
-tmux_conf_theme_right_separator_main=""
-tmux_conf_theme_right_separator_sub="|"
-#tmux_conf_theme_left_separator_main='\uE0B0'  # /!\ you don't need to install Powerline
-#tmux_conf_theme_left_separator_sub='\uE0B1'   #   you only need fonts patched with
-#tmux_conf_theme_right_separator_main='\uE0B2' #   Powerline symbols or the standalone
-#tmux_conf_theme_right_separator_sub='\uE0B3'  #   PowerlineSymbols.otf font, see README.md
+tmux_conf_theme_left_separator_main='\uE0B0'  # /!\ you don't need to install Powerline
+tmux_conf_theme_left_separator_sub='\uE0B1'   #   you only need fonts patched with
+tmux_conf_theme_right_separator_main='\uE0B2' #   Powerline symbols or the standalone
+tmux_conf_theme_right_separator_sub='\uE0B3'  #   PowerlineSymbols.otf font, see README.md
 
 # status left/right content:
 #   - separate main sections with "|"
@@ -330,11 +326,9 @@ set -g mouse on
 #set -g mode-keys vi
 
 # replace C-b by C-a instead of using both prefixes
-# set -gu prefix2
-# unbind C-a
-unbind C-b
-set -g prefix C-a
-bind C-a send-prefix
+if-shell '[ -n "$TMUX_NESTED" ]' \
+  'set -gu prefix2; unbind C-b; set -g prefix C-Space; bind C-Space send-prefix; bind -n C-a send-prefix' \
+  'set -gu prefix2; unbind C-b; set -g prefix C-a; bind C-a send-prefix'
 
 # split current window horizontally
 bind - split-window -v
@@ -362,7 +356,12 @@ bind -n M-S-Right next-window    # select next window
 bind Tab last-window         # move to last active window
 
 # move status line to top
-#set -g status-position top
+if-shell '[ -n "$TMUX_NESTED" ]' 'set -g status-position top' 'set -g status-position bottom'
+
+# nested vs outer status colors
+if-shell '[ -n "$TMUX_NESTED" ]' \
+  'set -g status-style "fg=colour231,bg=colour88"; set -g window-status-style "fg=colour250,bg=colour88"; set -g window-status-current-style "fg=colour231,bg=colour202,bold"; set -g message-style "fg=colour88,bg=colour231"; set -g pane-border-style "fg=colour95"; set -g pane-active-border-style "fg=colour214"' \
+  'set -g status-style "fg=colour231,bg=colour24"; set -g window-status-style "fg=colour250,bg=colour24"; set -g window-status-current-style "fg=colour231,bg=colour31,bold"; set -g message-style "fg=colour24,bg=colour231"; set -g pane-border-style "fg=colour24"; set -g pane-active-border-style "fg=colour39"'
 
 # -- tpm -----------------------------------------------------------------------
 

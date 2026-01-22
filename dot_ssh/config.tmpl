@@ -1,0 +1,95 @@
+#Include Site specific configs
+# #Kiba
+# Match exec "[[ $(cat $HOME/.vpn/active) == kiba ]]"
+#     Include config.d/kiba
+
+# #Totsuka
+# Match exec "[[ $(cat $HOME/.vpn/active) == tt ]]"
+#     Include config.d/tt
+
+# #Sanda
+# Match exec "[[ $(cat $HOME/.vpn/active) == sn ]]"
+#     Include config.d/sn
+
+# #Mainz
+# Match exec "[[ $(cat $HOME/.vpn/active) == mainz ]]"
+#     Include config.d/mainz
+# #gcloud
+# Include config.d/gcp
+
+# #SOCKS Tunnel
+# Host tun
+#     DynamicForward  6000
+#     ServerAliveInterval 30
+#     ServerAliveCountMax 3
+#     ExitOnForwardFailure yes
+#     ControlPath /tmp/tunnel.ctl
+
+# # ProxyJump
+# Host !localhost !127.0.0.1 ![::1] !tun !*dmz !*mgmt !*core !*gc !*kvm* !*.stg-id-proxy.rmb-lab.jp !*.dev-id-proxy.rmb-lab.jp !*.id-proxy.rmb-it.jp !gcp* !pi !y50 *
+#     ProxyJump mgmt
+
+# Host localhost 127.0.0.1
+#     ControlMaster no
+#     ControlPath none
+# # Pomerium SSH config
+# Host *.stg-id-proxy.rmb-lab.jp *.dev-id-proxy.rmb-lab.jp *.id-proxy.rmb-it.jp
+#     ProxyCommand pomerium-cli tcp --listen - %h:%p
+#     ControlMaster no
+#     ControlPath none
+#     Port 9080
+#     PubkeyAuthentication no
+#     User bharath.ravichand-a
+
+# Host 240b*
+#     PubkeyAuthentication no
+#     ControlMaster no
+#     ControlPath none
+
+#Host mochi
+#    HostName 192.168.88.17
+#    User rbkv2
+
+#Host matcha
+#    HostName 192.168.88.23
+#    User rbkv2
+
+#Host y50
+#    HostName 192.168.43.16
+
+Host gates
+    HostName gates.tail8fd56.ts.net
+    User santa
+
+Host wsl
+    Hostname localhost
+    Port 2022
+    User linus
+    ProxyJump gates
+#    UserKnownHostsFile ~\.ssh\wsl
+
+Host r2 r2.blr.rbkv2.in
+    HostName 192.168.0.10
+    User root
+
+Host marvin marvin.blr.rbkv2.in
+    HostName 192.168.0.20
+    User rbkv2
+
+#Global Config
+Host *
+#    User bharath.ravichandran
+    CanonicalizeHostname no
+    IgnoreUnknown UseKeychain,AddKeysToAgent
+{{- if eq .chezmoi.os "darwin" }}
+    UseKeychain yes
+    AddKeysToAgent yes
+{{- end }}
+    Compression yes
+    VisualHostKey yes
+    IdentityFile ~/.ssh/id_rsa
+    StrictHostKeyChecking no
+#    ForwardAgent yes
+    ControlMaster auto
+    ControlPath /tmp/%h
+    ControlPersist yes

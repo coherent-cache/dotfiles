@@ -1,0 +1,25 @@
+# WSL specific settings
+
+# File permissions
+if [[ "$(umask)" = "0000" ]]; then
+  umask 0022
+fi
+
+# Vagrant WSL
+export VAGRANT_WSL_ENABLE_WINDOWS_ACCESS="1"
+if [ -d "/mnt/c/Program Files/Oracle/VirtualBox" ]; then
+  export PATH="${PATH}:/mnt/c/Program Files/Oracle/VirtualBox"
+fi
+
+# Keychain
+if command -v keychain >/dev/null 2>&1; then
+  eval "$(keychain -q --eval --agents ssh id_rsa)"
+fi
+
+# DISPLAY
+if [ -r /etc/resolv.conf ]; then
+  export DISPLAY=$(awk '/nameserver/ {print $2; exit}' /etc/resolv.conf):0
+fi
+vpn-cli() {
+  "vpncli.exe" "$@"
+}

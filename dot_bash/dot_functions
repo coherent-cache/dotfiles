@@ -1,0 +1,137 @@
+# Brew Upgrade with fzf
+bup() {
+  local upd=$(brew leaves | eval "fzf ${FZF_DEFAULT_OPTS} -m --header='[brew:update]'")
+
+  if [[ $upd ]]; then
+    for prog in $(echo $upd)
+    do brew upgrade $prog
+    done
+  fi
+}
+
+verilator-docker() {
+  docker run -ti -v ${PWD}:/work --user $(id -u):$(id -g) verilator/verilator:$1 "${@:2}"
+}
+
+# # Git wrapper for Katana
+# katana() {
+#   VPN_ACTIVE=$(cat $HOME/.vpn/active)
+#   case $VPN_ACTIVE in
+#     kiba)
+#       git -c "http.proxy=http://192.168.1.201:80" clone "$@"
+#       cd "$(basename "$@" .git)"
+#       git config --local http.proxy http://192.168.1.201:80
+#     ;;
+#     tt|sn)
+#       git -c "http.proxy=http://192.168.1.216:80" clone "$@"
+#       cd "$(basename "$@" .git)"
+#       git config --local http.proxy http://192.168.1.216:80
+#     ;;
+#   esac
+# }
+# cd with fzf
+fcd() {
+    cd "$(find ~ -maxdepth 5 -not -path '*/\.git/*' -type d | fzf --height 40% --reverse)"
+}
+# Check if binary exists in path
+has() {
+  hash "$1" 2>/dev/null
+  return $?
+}
+
+# Execute command via proxychains
+pxc() {
+  if has "$1" && has proxychains4; then
+   $(which proxychains4) -q "$@"
+  fi
+}
+
+# Robin CLI wrapper with proxychains
+rcp() {
+  pxc robin "$@"
+}
+
+# gcp() {
+#   export GCPPASS=$(keepassxc-cli show ~/keepassxc/Vault.kdbx 'KeePassXC-Browser Passwords/GCP Robin cluster' -a Password)
+#   robin login admin --tenant=zt-ras --namespace=zt-ras --password="$GCPPASS"
+# }
+k () {
+  kubectl "$@" --insecure-skip-tls-verify
+}
+
+# # cisco anyconnect wrapper fn
+# vpn() {
+#   VPN_STATE=$(vpn-cli status | awk '/state:/ {print $NF}' | tail -n1)
+#   case $1 in
+#     exit|intra|kiba|mainz|tt|sn)
+#       ssh -TO exit tun
+#       vpn-cli -s disconnect
+#       echo "null" > $HOME/.vpn/active
+#       ;;&
+#     intra|kiba|mainz|tt|sn)
+#       vpn-cli -s < $HOME/.vpn/${1} connect ${1^^}
+#       VPN_STATE=$(vpn-cli status | awk '/state:/ {print $NF}' | tail -n1)
+#       if [[ $VPN_STATE =~ .*Connected.* ]]; then
+#         echo "${1}" > $HOME/.vpn/active
+#       fi
+#       ;;&
+#     kiba|tt|sn)
+#       if [[ $VPN_STATE =~ .*Connected.* ]]; then
+#         MAX_CONN=5
+#         CURR_CONN=1
+#         ssh -fNTM tun
+#         until ssh -TO check tun || (( CURR_CONN == MAX_CONN )); do
+#           echo "Unable to create tunnels... Retrying in ${CURR_CONN}s..."
+#           sleep $(( CURR_CONN++ ))
+#           ssh -fNTM tun
+#         done
+#         win_ssh_config $1
+#       fi
+#       ;;&
+#     mainz)
+#       win_ssh_config $1
+#       sed -i '' "s|ProxyJump mgmt|ProxyJump none|g" $HOME/.ssh/config_win_vscode
+#       ;;
+#     status)
+#       vpn-cli status
+#       if ! [[ $VPN_STATE =~ .*Connected.* ]]; then
+#         echo "null" > $HOME/.vpn/active
+#         echo "Not connected to any VPN"
+#       else
+#       echo -e "Connected to $(cat $HOME/.vpn/active)\n\nSSH Tunnel status:"
+#       ssh -TO check tun
+#       fi
+#       ;;
+#   esac
+# }
+
+win_ssh_config() {
+  cat > "$HOME/.ssh/config_win_vscode" << EOF
+Include ~/.ssh/config.d/$1
+Include ~/.ssh/config.d/gcp
+# ProxyJump
+Host !localhost !127.0.0.1 ![::1] !tun !*dmz* !mgmt* !core* !gc* !*kvm* !*.stg-id-proxy.rmb-lab.jp !gcp* *
+    ProxyJump mgmt
+#Global Config
+Host *
+    User bharath.ravichandran
+    Compression yes
+    StrictHostKeyChecking no
+    IdentityFile ~/.ssh/id_rsa_vscode
+    ForwardAgent yes
+Host stack
+    HostName stack
+EOF
+}
+
+# Tmux wrapper with fzf for selecting sessions
+tm() {
+# check that tmux is installed
+if command -v tmux > /dev/null; then
+  [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
+  if [ $1 ]; then
+    tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
+  fi
+  session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || tmux new -s alpha -n main
+fi
+}

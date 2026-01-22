@@ -1,0 +1,30 @@
+# Shell completion
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+# Add .local/bin to PATH
+export PATH="$HOME/.local/bin:$PATH"
+
+# Rust
+[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+# GO
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/src/go
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+
+# k8s
+export KUBECONFIG=$HOME/.kube/config
+
+# FZF
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# NVM
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"

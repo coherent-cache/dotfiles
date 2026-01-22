@@ -1,0 +1,12 @@
+[user]
+	email = rbkv2.0@gmail.com
+	name = coherent-cache
+[credential]
+	helper = store
+[branch]
+	autoSetupRebase = always
+[core]
+	editor = code --wait
+	excludesfile = ~/.gitignore_global
+[push]
+	autoSetupRemote = true

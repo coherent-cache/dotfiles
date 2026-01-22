@@ -1,0 +1,28 @@
+# Setup fzf
+# ---------
+fzf_base=""
+if [ -d /opt/homebrew/opt/fzf ]; then
+  fzf_base=/opt/homebrew/opt/fzf
+elif [ -d /usr/share/fzf ]; then
+  fzf_base=/usr/share/fzf
+elif [ -d /usr/share/doc/fzf ]; then
+  fzf_base=/usr/share/doc/fzf
+fi
+
+if [ -n "$fzf_base" ]; then
+  if [[ ! "$PATH" == *"$fzf_base/bin"* ]]; then
+    PATH="${PATH:+${PATH}:}$fzf_base/bin"
+  fi
+
+  # Auto-completion
+  # ---------------
+  if [ -f "$fzf_base/shell/completion.bash" ]; then
+    [[ $- == *i* ]] && source "$fzf_base/shell/completion.bash" 2> /dev/null
+  fi
+
+  # Key bindings
+  # ------------
+  if [ -f "$fzf_base/shell/key-bindings.bash" ]; then
+    source "$fzf_base/shell/key-bindings.bash"
+  fi
+fi

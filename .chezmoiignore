@@ -1,0 +1,5 @@
+.DS_Store
+.stfolder
+archive/
+archive/**
+**/.DS_Store

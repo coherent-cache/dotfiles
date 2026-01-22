@@ -326,8 +326,8 @@ set -g mouse on
 #set -g mode-keys vi
 
 # replace C-b by C-a instead of using both prefixes
-if-shell '[ -n "$TMUX_NESTED" ]' \
-  'set -gu prefix2; unbind C-b; set -g prefix C-Space; bind C-Space send-prefix; bind -n C-a send-prefix' \
+if-shell '[ -n "$TMUX_NESTED" ] || [ -n "$SSH_CONNECTION" ]' \
+  'set -gu prefix2; unbind C-b; set -g prefix C-Space; bind C-Space send-prefix' \
   'set -gu prefix2; unbind C-b; set -g prefix C-a; bind C-a send-prefix'
 
 # split current window horizontally
@@ -355,13 +355,31 @@ bind -n M-S-Left previous-window # select previous window
 bind -n M-S-Right next-window    # select next window
 bind Tab last-window         # move to last active window
 
-# move status line to top
-if-shell '[ -n "$TMUX_NESTED" ]' 'set -g status-position top' 'set -g status-position bottom'
+# move status line to top for nested
+if-shell '[ -n "$TMUX_NESTED" ] || [ -n "$SSH_CONNECTION" ]' 'set -g status-position top' 'set -g status-position bottom'
 
-# nested vs outer status colors
-if-shell '[ -n "$TMUX_NESTED" ]' \
-  'set -g status-style "fg=colour231,bg=colour88"; set -g window-status-style "fg=colour250,bg=colour88"; set -g window-status-current-style "fg=colour231,bg=colour202,bold"; set -g message-style "fg=colour88,bg=colour231"; set -g pane-border-style "fg=colour95"; set -g pane-active-border-style "fg=colour214"' \
-  'set -g status-style "fg=colour231,bg=colour24"; set -g window-status-style "fg=colour250,bg=colour24"; set -g window-status-current-style "fg=colour231,bg=colour31,bold"; set -g message-style "fg=colour24,bg=colour231"; set -g pane-border-style "fg=colour24"; set -g pane-active-border-style "fg=colour39"'
+# nested vs outer status colors (apply after gpakosz theme)
+run-shell -b 'if [ -n "$TMUX_NESTED" ] || [ -n "$SSH_CONNECTION" ]; then
+  tmux set -g status-style "fg=colour231,bg=colour88";
+  tmux set -g status-left-style "fg=colour231,bg=colour88";
+  tmux set -g status-right-style "fg=colour231,bg=colour88";
+  tmux setw -g window-status-style "fg=colour250,bg=colour88";
+  tmux setw -g window-status-current-style "fg=colour231,bg=colour202,bold";
+  tmux set -g message-style "fg=colour88,bg=colour231";
+  tmux setw -g mode-style "fg=colour231,bg=colour202";
+  tmux set -g pane-border-style "fg=colour95";
+  tmux set -g pane-active-border-style "fg=colour214";
+else
+  tmux set -g status-style "fg=colour231,bg=colour24";
+  tmux set -g status-left-style "fg=colour231,bg=colour24";
+  tmux set -g status-right-style "fg=colour231,bg=colour24";
+  tmux setw -g window-status-style "fg=colour250,bg=colour24";
+  tmux setw -g window-status-current-style "fg=colour231,bg=colour31,bold";
+  tmux set -g message-style "fg=colour24,bg=colour231";
+  tmux setw -g mode-style "fg=colour231,bg=colour31";
+  tmux set -g pane-border-style "fg=colour24";
+  tmux set -g pane-active-border-style "fg=colour39";
+fi'
 
 # -- tpm -----------------------------------------------------------------------
 
@@ -392,8 +410,6 @@ set -g @plugin 'tmux-plugins/tmux-cpu'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @continuum-restore 'on'
-set -g @plugin 'egel/tmux-gruvbox'
-set -g @tmux-gruvbox 'dark' # or 'light'
 
 # -- custom variables ----------------------------------------------------------
 

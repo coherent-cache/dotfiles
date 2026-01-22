@@ -72,9 +72,27 @@ xterm*|rxvt*)
     ;;
 esac
 
-if [ -r ~/.profile ]; then
-   source ~/.profile
+for file in "$HOME/.bash/.aliases" "$HOME/.bash/.functions" "$HOME/.bash/.docker_aliases"; do
+    [ -r "$file" ] && source "$file"
+done
+unset file
+
+unamestr=$(uname)
+if [ "$unamestr" = "Darwin" ]; then
+    [ -r "$HOME/.bash/.macos" ] && source "$HOME/.bash/.macos"
+elif [ "$unamestr" = "Linux" ]; then
+    [ -r "$HOME/.bash/.linux" ] && source "$HOME/.bash/.linux"
+    if grep -qi microsoft /proc/version 2>/dev/null || grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+        [ -r "$HOME/.bash/.wsl" ] && source "$HOME/.bash/.wsl"
+    fi
+elif [ "$unamestr" = "FreeBSD" ]; then
+    [ -r "$HOME/.bash/.freebsd" ] && source "$HOME/.bash/.freebsd"
 fi
 
 [[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
-eval "$(atuin init bash)"
+if [ -f "$HOME/.atuin/bin/env" ]; then
+    . "$HOME/.atuin/bin/env"
+fi
+if command -v atuin >/dev/null 2>&1; then
+    eval "$(atuin init bash)"
+fi

@@ -9,50 +9,67 @@ if ! shopt -oq posix; then
   fi
 fi
 
-# Homebrew
-export PATH="/opt/homebrew/bin:$PATH"
-
-# Add .local/bin to PATH
-export PATH="$HOME/.local/bin:$PATH"
-
 # LLVM
-export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
 export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
 export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
-
-# Rust
-[ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
 
 # GO
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/src/go
-export PATH="$GOPATH/bin:$PATH"
 
 # k8s
 export KUBECONFIG=$HOME/.kube/config
 
-# FZF
-[ -f ~/.fzf.bash ] && source ~/.fzf.bash
-
 # NVM
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-[ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
 
 # Android SDK
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 
 # Cocoa pods
 export GEM_HOME=$HOME/.gem
-export PATH=$GEM_HOME/bin:$PATH
 
 # Mojo
 export MODULAR_HOME="$HOME/.modular"
-export PATH="$HOME/.modular/pkg/packages.modular.com_mojo/bin:$PATH"
 
-# LM Studio
-export PATH="$PATH:$HOME/.lmstudio/bin"
+# PATH mutations (guarded to avoid duplicates in nested shells)
+if [ -z "${BASH_PATH_MUTATED:-}" ]; then
+  export BASH_PATH_MUTATED=1
 
-# opencode
-export PATH="$HOME/.opencode/bin:$PATH"
+  # Homebrew
+  export PATH="/opt/homebrew/bin:$PATH"
+
+  # Add .local/bin to PATH
+  export PATH="$HOME/.local/bin:$PATH"
+
+  # LLVM
+  export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+
+  # Rust
+  [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+  # GO
+  export PATH="$GOPATH/bin:$PATH"
+
+  # FZF
+  [ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+  # NVM
+  [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+  [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+
+  # Android SDK
+  export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+  # Cocoa pods
+  export PATH=$GEM_HOME/bin:$PATH
+
+  # Mojo
+  export PATH="$HOME/.modular/pkg/packages.modular.com_mojo/bin:$PATH"
+
+  # LM Studio
+  export PATH="$PATH:$HOME/.lmstudio/bin"
+
+  # opencode
+  export PATH="$HOME/.opencode/bin:$PATH"
+fi

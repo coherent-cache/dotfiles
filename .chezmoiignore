@@ -5,3 +5,8 @@ archive/**
 **/.DS_Store
 .config/alacritty/themes
 .config/alacritty/themes/**
+.config/karabiner/assets
+.config/karabiner/assets/**
+.config/karabiner/automatic_backups
+.config/karabiner/automatic_backups/**
+.config/karabiner/karabiner.json.bak

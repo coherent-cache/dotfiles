@@ -8,10 +8,7 @@ tracked here.
 SSH into the new machine, then run:
 
 ```sh
-mkdir -p ~/.local/bin
-curl -fsLS https://chezmoi.io/get | sh -s -- -b ~/.local/bin
-
-chezmoi init --apply coherent-cache
+sh -c "$(curl -fsLS get.chezmoi.io)" -- init --apply coherent-cache
 ```
 
 ## Notes

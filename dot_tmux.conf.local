@@ -349,8 +349,6 @@ bind -n M-f select-pane -R      # move right (Option+Right in some terminals)
 # window navigation
 unbind n
 unbind p
-unbind -n C-h
-unbind -n C-l
 bind -n M-S-Left previous-window # select previous window
 bind -n M-S-Right next-window    # select next window
 bind Tab last-window         # move to last active window

@@ -3,3 +3,5 @@
 archive/
 archive/**
 **/.DS_Store
+.config/alacritty/themes
+.config/alacritty/themes/**

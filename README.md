@@ -11,7 +11,7 @@ SSH into the new machine, then run:
 mkdir -p ~/.local/bin
 curl -fsLS https://chezmoi.io/get | sh -s -- -b ~/.local/bin
 
-chezmoi init --apply coherent-cache/dotfiles
+chezmoi init --apply coherent-cache
 ```
 
 ## Notes
@@ -20,3 +20,4 @@ chezmoi init --apply coherent-cache/dotfiles
   `~/.bash/.wsl`.
 - `~/.tmux.conf` is a minimal base, with customizations in
   `~/.tmux.conf.local`.
+- Update/apply changes with `chezmoi update`.

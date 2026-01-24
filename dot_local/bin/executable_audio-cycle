@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+switcher="/opt/homebrew/bin/SwitchAudioSource"
+if [[ ! -x "$switcher" ]]; then
+  echo "SwitchAudioSource not found at $switcher" >&2
+  exit 1
+fi
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: audio-cycle <output|input> <next|prev>" >&2
+  exit 1
+fi
+
+target="$1"
+direction="$2"
+
+if [[ "$target" != "output" && "$target" != "input" ]]; then
+  echo "Invalid target: $target" >&2
+  exit 1
+fi
+
+if [[ "$direction" != "next" && "$direction" != "prev" ]]; then
+  echo "Invalid direction: $direction" >&2
+  exit 1
+fi
+
+output_devices=(
+  "ஏர்பாட்ஸ்"
+  "LS32A70"
+  "JBL Flip 5"
+  "Audient iD4"
+  "MacBook Pro Speakers"
+)
+
+input_devices=(
+  "ஏர்பாட்ஸ்"
+  "Audient iD4"
+  "MacBook Pro Microphone"
+)
+
+if [[ "$target" == "output" ]]; then
+  desired_devices=("${output_devices[@]}")
+else
+  desired_devices=("${input_devices[@]}")
+fi
+
+available_devices="$($switcher -a -t "$target")"
+current_device="$($switcher -c -t "$target")"
+
+filtered_devices=()
+for device in "${desired_devices[@]}"; do
+  if printf '%s\n' "$available_devices" | grep -Fxq "$device"; then
+    filtered_devices+=("$device")
+  fi
+done
+
+if [[ ${#filtered_devices[@]} -eq 0 ]]; then
+  echo "No available $target devices from configured list." >&2
+  exit 1
+fi
+
+current_index=-1
+for index in "${!filtered_devices[@]}"; do
+  if [[ "${filtered_devices[$index]}" == "$current_device" ]]; then
+    current_index=$index
+    break
+  fi
+done
+
+if [[ $current_index -lt 0 ]]; then
+  if [[ "$direction" == "next" ]]; then
+    next_index=0
+  else
+    next_index=$((${#filtered_devices[@]} - 1))
+  fi
+else
+  if [[ "$direction" == "next" ]]; then
+    next_index=$(( (current_index + 1) % ${#filtered_devices[@]} ))
+  else
+    next_index=$(( (current_index - 1 + ${#filtered_devices[@]}) % ${#filtered_devices[@]} ))
+  fi
+fi
+
+next_device="${filtered_devices[$next_index]}"
+$switcher -t "$target" -s "$next_device" >/dev/null
+
+current_after="$($switcher -c -t "$target")"
+if [[ "$current_after" != "$next_device" ]]; then
+  osascript -e "display notification \"Switch failed (now: $current_after)\" with title \"Audio $target\"" >/dev/null
+  exit 1
+fi
+
+icon="🔊"
+case "$next_device" in
+  *"AirPods"*|*"ஏர்பாட்ஸ்"*) icon="🎧" ;;
+  *"MacBook Pro Speakers"*) icon="🔊" ;;
+  *"LS32A70"*) icon="🖥" ;;
+  *"JBL"*) icon="🔈" ;;
+  *"Audient"*) icon="🎛" ;;
+  *"Microphone"*) icon="🎙" ;;
+esac
+
+osascript -e "display notification \"$icon $next_device\" with title \"Audio $target\"" >/dev/null

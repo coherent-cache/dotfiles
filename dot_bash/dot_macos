@@ -26,7 +26,7 @@ export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
 # GO
 export GOROOT=/usr/local/go
 export GOPATH=$HOME/src/go
-export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+export PATH="$GOPATH/bin:$PATH"
 
 # k8s
 export KUBECONFIG=$HOME/.kube/config

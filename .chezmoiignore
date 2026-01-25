@@ -11,3 +11,6 @@ archive/**
 .config/karabiner/automatic_backups/**
 .config/karabiner/karabiner.json.bak
 README.md
+{{- if ne .chezmoi.os "darwin" }}
+.local/bin/audio-cycle
+{{- end }}

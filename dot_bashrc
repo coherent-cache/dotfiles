@@ -96,3 +96,6 @@ fi
 if command -v atuin >/dev/null 2>&1; then
     eval "$(atuin init bash --disable-up-arrow)"
 fi
+if command -v starship >/dev/null 2>&1; then
+    eval "$(starship init bash)"
+fi

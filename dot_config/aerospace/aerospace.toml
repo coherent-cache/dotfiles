@@ -1,5 +1,5 @@
 # AeroSpace Configuration
-# Streamlined 4-workspace setup: W (Work), E (Explore), Q (Queue), C (Comms)
+# Streamlined 3-workspace setup: W (Work), E (Entertainment), Q (Comms)
 
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
 after-startup-command = []
@@ -41,25 +41,48 @@ outer.right = [
 ]
 
 # Workspace to monitor assignment
-# C (Comms) on laptop (main = where Dock lives)
-# W, E, Q on external monitor (secondary), fallback to primary
+# Prefer external display; fallback to primary when only built-in is available
 [workspace-to-monitor-force-assignment]
-C = 'main'
+Q = ['secondary', 1]
 W = ['secondary', 1]
 E = ['secondary', 1]
-Q = ['secondary', 1]
 
 # ============================================================================
 # App auto-assignment rules
 # ============================================================================
 
-# W (Work) - Coding & creative
+# Q (Comms) - Communication & meetings
+[[on-window-detected]]
+if.app-name-regex-substring = 'WhatsApp'
+run = 'move-node-to-workspace Q'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Discord'
+run = 'move-node-to-workspace Q'
+
+[[on-window-detected]]
+if.app-id = 'com.microsoft.teams2'
+run = 'move-node-to-workspace Q'
+
+[[on-window-detected]]
+if.app-name-regex-substring = 'Webex'
+run = 'move-node-to-workspace Q'
+
+[[on-window-detected]]
+if.window-title-regex-substring = 'meet\.google\.com'
+run = 'move-node-to-workspace Q'
+
+# W (Work) - Coding & research
 [[on-window-detected]]
 if.app-name-regex-substring = 'Zed'
 run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Alacritty'
+run = 'move-node-to-workspace W'
+
+[[on-window-detected]]
+if.app-id = 'net.kovidgoyal.kitty'
 run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
@@ -71,39 +94,25 @@ if.app-name-regex-substring = 'Logic Pro'
 run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
-if.app-name-regex-substring = 'Helium'
+if.app-id = 'ai.opencode.desktop'
 run = 'move-node-to-workspace W'
 
-# E (Explore) - Research & notes
 [[on-window-detected]]
 if.app-name-regex-substring = 'Firefox'
-run = 'move-node-to-workspace E'
+run = 'move-node-to-workspace W'
 
 [[on-window-detected]]
 if.app-id = 'com.electron.logseq'
+run = 'move-node-to-workspace W'
+
+# E (Entertainment) - Media
+[[on-window-detected]]
+if.app-name-regex-substring = 'Helium'
 run = 'move-node-to-workspace E'
 
-# Q (Queue) - Content consumption
 [[on-window-detected]]
-if.app-name-regex-substring = 'Safari'
-run = 'move-node-to-workspace Q'
-
-# C (Comms) - Communication & meetings
-[[on-window-detected]]
-if.app-name-regex-substring = 'WhatsApp'
-run = 'move-node-to-workspace C'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Discord'
-run = 'move-node-to-workspace C'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Webex'
-run = 'move-node-to-workspace C'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Hyprnote'
-run = 'move-node-to-workspace C'
+if.app-id = 'com.spotify.client'
+run = 'move-node-to-workspace E'
 
 # ============================================================================
 # Keybindings - Main mode
@@ -142,23 +151,20 @@ alt-equal = 'resize smart +50'
 # Fullscreen
 alt-f = 'fullscreen'
 
-# Workspaces (4 only: W, E, Q, C)
+# Workspaces (3 only: Q, W, E)
+alt-q = 'workspace Q'
 alt-w = 'workspace W'
 alt-e = 'workspace E'
-alt-q = 'workspace Q'
-alt-c = 'workspace C'
 
 # Move window to workspace and switch
+alt-shift-q = ['move-node-to-workspace Q', 'workspace Q']
 alt-shift-w = ['move-node-to-workspace W', 'workspace W']
 alt-shift-e = ['move-node-to-workspace E', 'workspace E']
-alt-shift-q = ['move-node-to-workspace Q', 'workspace Q']
-alt-shift-c = ['move-node-to-workspace C', 'workspace C']
 
 # Move window to workspace (stay on current)
+alt-ctrl-shift-q = 'move-node-to-workspace Q'
 alt-ctrl-shift-w = 'move-node-to-workspace W'
 alt-ctrl-shift-e = 'move-node-to-workspace E'
-alt-ctrl-shift-q = 'move-node-to-workspace Q'
-alt-ctrl-shift-c = 'move-node-to-workspace C'
 
 # Workspace navigation
 alt-tab = 'workspace-back-and-forth'

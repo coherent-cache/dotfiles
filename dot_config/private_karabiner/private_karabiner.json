@@ -41,7 +41,7 @@
                         ]
                     },
                     {
-                        "description": "Hyper+W: Open Helium (Work floating video)",
+                        "description": "Hyper+W: Open Helium (Work)",
                         "manipulators": [
                             {
                                 "from": {
@@ -154,7 +154,61 @@
                         ]
                     },
                     {
-                        "description": "Hyper+[]: Audio output cycling",
+                        "description": "Hyper+U/O: Home/End",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "u",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "home" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "o",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "end" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Hyper+Y/H: Page Up/Down",
+                        "manipulators": [
+                            {
+                                "from": {
+                                    "key_code": "y",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "page_up" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "key_code": "h",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "key_code": "page_down" }],
+                                "type": "basic"
+                            }
+                        ]
+                    },
+                    {
+                        "description": "Hyper+[] or Hyper+Vol: Audio output cycling",
                         "manipulators": [
                             {
                                 "from": {
@@ -164,11 +218,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "shell_command": "$HOME/.local/bin/audio-cycle output prev"
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle output prev" }],
                                 "type": "basic"
                             },
                             {
@@ -179,11 +229,29 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "shell_command": "$HOME/.local/bin/audio-cycle output next"
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle output next" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "consumer_key_code": "volume_decrement",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
                                     }
-                                ],
+                                },
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle output prev" }],
+                                "type": "basic"
+                            },
+                            {
+                                "from": {
+                                    "consumer_key_code": "volume_increment",
+                                    "modifiers": {
+                                        "mandatory": ["left_shift", "left_command", "left_control", "left_option"],
+                                        "optional": ["any"]
+                                    }
+                                },
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle output next" }],
                                 "type": "basic"
                             }
                         ]
@@ -199,11 +267,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "shell_command": "$HOME/.local/bin/audio-cycle input prev"
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle input prev" }],
                                 "type": "basic"
                             },
                             {
@@ -214,11 +278,7 @@
                                         "optional": ["any"]
                                     }
                                 },
-                                "to": [
-                                    {
-                                        "shell_command": "$HOME/.local/bin/audio-cycle input next"
-                                    }
-                                ],
+                                "to": [{ "shell_command": "$HOME/.local/bin/audio-cycle input next" }],
                                 "type": "basic"
                             }
                         ]

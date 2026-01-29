@@ -115,7 +115,7 @@ cmd-alt-h = []  # Disable "hide others"
 # Layout
 alt-slash = 'layout tiles accordion'
 alt-comma = 'layout horizontal vertical'
-# alt-space removed to allow Raycast (Alt+Space)
+alt-space = 'layout tiles accordion'
 
 # Focus (IJKL)
 alt-j = 'focus left'

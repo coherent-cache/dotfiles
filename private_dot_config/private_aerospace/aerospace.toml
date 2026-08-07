@@ -108,6 +108,20 @@ run = 'move-node-to-workspace W'
 if.app-id = 'com.apple.finder'
 run = 'layout floating'
 
+# Thunderbird: main window tiles, everything else floats (compose, dialogs,
+# attachment pickers). The main window is the only one carrying the
+# "Mozilla Thunderbird" title suffix - verified against the running app.
+# ORDER MATTERS: AeroSpace runs the first matching callback and stops, so the
+# specific main-window rule must come before the catch-all.
+[[on-window-detected]]
+if.app-id = 'org.mozilla.thunderbird'
+if.window-title-regex-substring = 'Mozilla Thunderbird'
+run = 'layout tiling'
+
+[[on-window-detected]]
+if.app-id = 'org.mozilla.thunderbird'
+run = 'layout floating'
+
 # E (Entertainment) - Media
 [[on-window-detected]]
 if.app-name-regex-substring = 'Helium'

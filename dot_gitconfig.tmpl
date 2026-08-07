@@ -1,0 +1,31 @@
+[user]
+	email = {{ .gitEmail }}
+	name = {{ .gitName }}
+[branch]
+	autoSetupRebase = always
+[core]
+	editor = code --wait
+	excludesfile = ~/.gitignore_global
+	pager = delta
+[push]
+	autoSetupRemote = true
+[interactive]
+	diffFilter = delta --color-only
+[delta]
+	navigate = true
+[merge]
+	conflictStyle = zdiff3
+[alias]
+	lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(auto)%d%C(reset)' --all
+{{- $gh := "/usr/bin/gh" }}
+{{- if eq .chezmoi.os "darwin" }}
+{{- $gh = "/opt/homebrew/bin/gh" }}
+{{- end }}
+[credential "https://github.com"]
+	helper =
+	helper = !{{ $gh }} auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !{{ $gh }} auth git-credential
+[include]
+	path = ~/.gitconfig.local

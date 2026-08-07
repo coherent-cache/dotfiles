@@ -1,0 +1,6 @@
+# History search is ctrl-r only — up-arrow is disabled at shell init
+# (`atuin init bash --disable-up-arrow`), so it keeps normal bash line recall.
+# Sync and update checks are off: no network calls.
+auto_sync = false
+update_check = false
+enter_accept = true

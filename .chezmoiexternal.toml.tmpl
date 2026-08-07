@@ -1,0 +1,14 @@
+[".local/share/zs"]
+    type = "git-repo"
+    url = "https://github.com/coherent-cache/zs.git"
+    refreshPeriod = "168h"
+
+{{- $zmxVer := "0.7.0" }}
+{{- $arch := eq .chezmoi.arch "arm64" | ternary "aarch64" "x86_64" }}
+{{- $os := eq .chezmoi.os "darwin" | ternary "macos" "linux" }}
+[".local/bin/zmx"]
+    type = "archive-file"
+    url = "https://github.com/neurosnap/zmx/releases/download/v{{ $zmxVer }}/zmx-{{ $zmxVer }}-{{ $os }}-{{ $arch }}.tar.gz"
+    path = "zmx"
+    executable = true
+    refreshPeriod = "168h"

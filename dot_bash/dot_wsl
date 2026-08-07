@@ -1,0 +1,3 @@
+# WSL-only settings, sourced from .bashrc when running under WSL.
+# Intentionally empty: no ssh-agent/keychain is started here, because all keys
+# are passphrase-less and named explicitly per host.

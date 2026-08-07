@@ -1,0 +1,116 @@
+# ~/.bashrc: executed by bash(1) for non-login shells.
+# see /usr/share/doc/bash/examples/startup-files (in the package bash-doc)
+# for examples
+
+# If not running interactively, don't do anything
+case $- in
+    *i*) ;;
+      *) return;;
+esac
+
+# don't put duplicate lines or lines starting with space in the history.
+# See bash(1) for more options
+HISTCONTROL=ignoreboth
+
+# append to the history file, don't overwrite it
+shopt -s histappend
+
+# for setting history length see HISTSIZE and HISTFILESIZE in bash(1)
+HISTSIZE=100000
+HISTFILESIZE=20000
+
+# check the window size after each command and, if necessary,
+# update the values of LINES and COLUMNS.
+shopt -s checkwinsize
+
+# If set, the pattern "**" used in a pathname expansion context will
+# match all files and zero or more directories and subdirectories.
+#shopt -s globstar
+
+# make less more friendly for non-text input files, see lesspipe(1)
+[ -x /usr/bin/lesspipe ] && eval "$(SHELL=/bin/sh lesspipe)"
+
+# set variable identifying the chroot you work in (used in the prompt below)
+if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
+    debian_chroot=$(cat /etc/debian_chroot)
+fi
+
+# set a fancy prompt (non-color, unless we know we "want" color)
+case "$TERM" in
+    xterm-color|*-256color) color_prompt=yes;;
+esac
+
+# uncomment for a colored prompt, if the terminal has the capability; turned
+# off by default to not distract the user: the focus in a terminal window
+# should be on the output of commands, not on the prompt
+#force_color_prompt=yes
+
+if [ -n "$force_color_prompt" ]; then
+    if [ -x /usr/bin/tput ] && tput setaf 1 >&/dev/null; then
+	# We have color support; assume it's compliant with Ecma-48
+	# (ISO/IEC-6429). (Lack of such support is extremely rare, and such
+	# a case would tend to support setf rather than setaf.)
+	color_prompt=yes
+    else
+	color_prompt=
+    fi
+fi
+
+if [ "$color_prompt" = yes ]; then
+    PS1='${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+else
+    PS1='${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+fi
+unset color_prompt force_color_prompt
+
+# If this is an xterm set the title to user@host:dir
+case "$TERM" in
+xterm*|rxvt*)
+    PS1="\[\e]0;${debian_chroot:+($debian_chroot)}\u@\h: \w\a\]$PS1"
+    ;;
+*)
+    ;;
+esac
+
+for file in "$HOME/.bash/.aliases" "$HOME/.bash/.functions" "$HOME/.bash/.docker_aliases"; do
+    [ -r "$file" ] && source "$file"
+done
+unset file
+
+unamestr=$(uname)
+if [ "$unamestr" = "Darwin" ]; then
+    [ -r "$HOME/.bash/.macos" ] && source "$HOME/.bash/.macos"
+elif [ "$unamestr" = "Linux" ]; then
+    [ -r "$HOME/.bash/.linux" ] && source "$HOME/.bash/.linux"
+    if grep -qi microsoft /proc/version 2>/dev/null || grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+        [ -r "$HOME/.bash/.wsl" ] && source "$HOME/.bash/.wsl"
+    fi
+elif [ "$unamestr" = "FreeBSD" ]; then
+    [ -r "$HOME/.bash/.freebsd" ] && source "$HOME/.bash/.freebsd"
+fi
+
+[ -r "$HOME/.bash/.zmx" ] && source "$HOME/.bash/.zmx"
+
+[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh
+if [ -f "$HOME/.atuin/bin/env" ]; then
+    . "$HOME/.atuin/bin/env"
+fi
+# Cache the deterministic init output instead of eval-ing a subprocess per
+# shell; regenerated when the binary is newer than the cache.
+__init_cached() {
+    local f="$HOME/.cache/init-$1" bin; shift
+    bin="$(command -v "$1" 2>/dev/null)" || return 0
+    { [ -r "$f" ] && [ "$f" -nt "$bin" ]; } \
+        || { mkdir -p "$HOME/.cache"; "$@" > "$f" 2>/dev/null; }
+    source "$f"
+}
+__init_cached atuin atuin init bash --disable-up-arrow
+__init_cached starship starship init bash --print-full-init
+
+for file in "$HOME"/.bash/rc.d/*.bash; do
+    [ -r "$file" ] && source "$file"
+done
+unset file
+
+# Unmanaged local overrides, sourced last so they win.
+[ -r "$HOME/.bash/.local" ] && source "$HOME/.bash/.local"

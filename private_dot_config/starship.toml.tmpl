@@ -1,0 +1,49 @@
+# Two-line prompt; language/toolchain VERSION modules omitted. Layout:
+#   line 1 L:  [node.session] dir  git (venv) took Ns
+#   line 1 R:  ✦jobs   HH:MM
+#   line 2  :  ✘code ❯      (exit code + red arrow only on failure)
+format = "${env_var.ZMX_SESSION}$directory$git_branch$git_status$python$cmd_duration$fill$jobs$time\n$status$character"
+
+# Unified host+session tag: [node.session] in this host's color. The node prefix
+# ({{ .nodeTag }}) disambiguates which box you're on since we always attach to a
+# zmx session over SSH. Whole tag vanishes when not inside a zmx session.
+[env_var.ZMX_SESSION]
+variable = "ZMX_SESSION"
+format = "[\\[{{ .nodeTag }}.$env_value\\]]($style) "
+style = "bold {{ .zmxColor }}"
+disabled = false
+
+# active python virtualenv NAME only (no version); nothing when no venv is active
+[python]
+format = "([\\($virtualenv\\)]($style) )"
+style = "bold green"
+
+# last command's runtime, shown only when it ran longer than min_time
+[cmd_duration]
+min_time = 2000
+format = "took [$duration]($style) "
+style = "bold yellow"
+
+[fill]
+symbol = " "
+
+# background-jobs marker, kept on the right to reduce left-side clutter
+[jobs]
+symbol_threshold = 1
+number_threshold = 1
+symbol = "✦"
+format = "[$symbol$number]($style) "
+style = "bold blue"
+
+[time]
+disabled = false
+format = "[$time]($style)"
+time_format = "%H:%M"
+style = "dimmed white"
+
+# exit code of the last command — shown only on failure (the arrow also reddens)
+[status]
+disabled = false
+format = "[$symbol$status]($style) "
+symbol = "✘ "
+style = "bold red"

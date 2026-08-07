@@ -1,0 +1,131 @@
+#!/bin/bash
+input=$(cat)
+
+# Toggle files
+TOGGLE_COST="$HOME/.claude/.statusline_weekly"
+TOGGLE_TOKENS="$HOME/.claude/.statusline_tokens"
+
+# Colors
+RST='\033[0m'
+RED='\033[31m'
+YEL='\033[33m'
+GRN='\033[32m'
+CYN='\033[36m'
+BLU='\033[34m'
+MAG='\033[35m'
+DIM='\033[2m'
+BOLD='\033[1m'
+
+# Host tag + per-host color, baked from chezmoi [data] (nodeTag / zmxColor) so
+# each machine's statusline self-identifies. Maps the starship color name → ANSI.
+{{- $sgr := dict "black" "30" "red" "31" "green" "32" "yellow" "33" "blue" "34" "magenta" "35" "cyan" "36" "white" "37" "bright-black" "90" "bright-red" "91" "bright-green" "92" "bright-yellow" "93" "bright-blue" "94" "bright-magenta" "95" "bright-cyan" "96" "bright-white" "97" }}
+NODE='{{ .nodeTag }}'
+NODE_COLOR='\033[{{ get $sgr .zmxColor | default "35" }}m'
+
+# Parse all fields in a single jq call
+eval "$(echo "$input" | jq -r '
+  @sh "REMAINING_PCT=\(.context_window.remaining_percentage // 100 | floor)",
+  @sh "MODEL=\(.model.display_name // .model.id // "?")",
+  @sh "CWD=\(.workspace.current_dir // "")",
+  @sh "PROJECT_DIR=\(.workspace.project_dir // "")",
+  @sh "COST=\(.cost.total_cost_usd // 0)",
+  @sh "WINDOW_SIZE=\(.context_window.context_window_size // 0)",
+  @sh "INPUT_TOKENS=\(.context_window.current_usage.input_tokens // 0)",
+  @sh "CACHE_CREATE=\(.context_window.current_usage.cache_creation_input_tokens // 0)",
+  @sh "CACHE_READ=\(.context_window.current_usage.cache_read_input_tokens // 0)"
+' 2>/dev/null)"
+
+# Git branch (fast, from HEAD)
+BRANCH=""
+GIT_DIR="${PROJECT_DIR:-$CWD}"
+if [ -n "$GIT_DIR" ] && [ -e "$GIT_DIR/.git" ]; then
+  BRANCH=$(git -C "$GIT_DIR" rev-parse --abbrev-ref HEAD 2>/dev/null)
+fi
+
+# Bar with autocompact marker — 10 blocks, marker at 80% (compact threshold)
+BAR_LEN=10
+COMPACT_PCT=80
+COMPACT_POS=$(( (COMPACT_PCT * BAR_LEN + 99) / 100 ))  # = 8
+USED_PCT=$(( 100 - REMAINING_PCT ))
+FILLED=$(( (USED_PCT * BAR_LEN + 99) / 100 ))
+[ "$FILLED" -gt "$BAR_LEN" ] && FILLED=$BAR_LEN
+[ "$FILLED" -lt 0 ] && FILLED=0
+
+# Color based on remaining % — shifts at the compact boundary (20% remaining)
+if [ "$REMAINING_PCT" -le 10 ]; then
+  BAR_COLOR="$RED$BOLD"
+  PCT_SUFFIX="!"
+elif [ "$REMAINING_PCT" -le 20 ]; then
+  BAR_COLOR="$RED"
+  PCT_SUFFIX=""
+elif [ "$REMAINING_PCT" -le 40 ]; then
+  BAR_COLOR="$YEL"
+  PCT_SUFFIX=""
+else
+  BAR_COLOR="$GRN"
+  PCT_SUFFIX=""
+fi
+
+# Build bar with │ marker at the compact threshold position
+BAR="${BAR_COLOR}"
+for ((i=0; i<BAR_LEN; i++)); do
+  if [ "$i" -eq "$COMPACT_POS" ]; then
+    BAR+="${RST}${DIM}│${RST}${BAR_COLOR}"
+  fi
+  if [ "$i" -lt "$FILLED" ]; then
+    BAR+="◼"
+  else
+    BAR+="${DIM}◻${RST}${BAR_COLOR}"
+  fi
+done
+BAR+="${RST} ${BAR_COLOR}${USED_PCT}%${PCT_SUFFIX}${RST}"
+
+# Token count (toggleable via /tokens) — denominator is compact threshold, not total
+TOKEN_INFO=""
+if [ -f "$TOGGLE_TOKENS" ]; then
+  USED_TOKENS=$(( INPUT_TOKENS + CACHE_CREATE + CACHE_READ ))
+  COMPACT_TOKENS=$(awk "BEGIN{printf \"%.0f\", $WINDOW_SIZE * $COMPACT_PCT / 100}")
+  USED_K=$(awk "BEGIN{printf \"%.0f\", $USED_TOKENS/1000}")
+  COMPACT_K=$(awk "BEGIN{printf \"%.0f\", $COMPACT_TOKENS/1000}")
+  TOKEN_INFO="${DIM}(${USED_K}k/${COMPACT_K}k)${RST}"
+fi
+
+# Shorten CWD: use ~ for home, show last 2 path components
+SHORT_CWD="$CWD"
+SHORT_CWD="${SHORT_CWD/#$HOME/~}"
+DEPTH=$(echo "$SHORT_CWD" | tr '/' '\n' | wc -l)
+if [ "$DEPTH" -gt 3 ]; then
+  SHORT_CWD="..$(echo "$SHORT_CWD" | rev | cut -d'/' -f1-2 | rev)"
+fi
+
+# Build output — lead with the host[·session] tag, colored per host. But
+# $ZMX_SESSION is only meaningful with a controlling TTY: a background/detached
+# agent inherits its SPAWNER's value, so we suppress it there and show the host
+# alone. Set $STATUSLINE_SESSION to tag a background agent explicitly (wins).
+SEP="${DIM}|${RST}"
+NODE_TAG="$NODE"
+if [ -n "${STATUSLINE_SESSION:-}" ]; then
+    NODE_TAG="${NODE}·${STATUSLINE_SESSION}"
+elif [ -n "${ZMX_SESSION:-}" ]; then
+    # "no controlling terminal" prints differently per platform: Linux/procps
+    # says "?", macOS/BSD says "??" — match both, or the guard silently passes
+    # on macOS and shows the stale inherited session.
+    CTTY=$(ps -o tty= -p $$ 2>/dev/null | tr -d ' ')
+    case "$CTTY" in
+        ''|'?'|'??') ;;
+        *) NODE_TAG="${NODE}·${ZMX_SESSION}" ;;
+    esac
+fi
+OUT="${NODE_COLOR}${BOLD}${NODE_TAG}${RST} ${SEP} ${BAR}"
+[ -n "$TOKEN_INFO" ] && OUT="${OUT} ${TOKEN_INFO}"
+[ -n "$MODEL" ]     && OUT="${OUT} ${SEP} ${CYN}${MODEL}${RST}"
+[ -n "$BRANCH" ]    && OUT="${OUT} ${SEP} ${MAG}${BRANCH}${RST}"
+[ -n "$SHORT_CWD" ] && OUT="${OUT} ${SEP} ${BLU}${SHORT_CWD}${RST}"
+
+# Session cost (toggleable via /cost)
+if [ -f "$TOGGLE_COST" ]; then
+  COST_FMT=$(printf '$%.2f' "$COST")
+  OUT="${OUT} ${SEP} ${YEL}${COST_FMT}${RST}"
+fi
+
+printf '%b' "$OUT"

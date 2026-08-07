@@ -1,0 +1,19 @@
+.DS_Store
+**/.DS_Store
+README.md
+
+# written by the tools themselves, not managed here
+.claude/.statusline_tokens
+.claude/.statusline_weekly
+
+# unmanaged per-machine overrides
+.bash/.local
+
+{{- if ne .chezmoi.os "darwin" }}
+.config/aerospace
+.config/aerospace/**
+.config/alacritty
+.config/alacritty/**
+.config/karabiner
+.config/karabiner/**
+{{- end }}

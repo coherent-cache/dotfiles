@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+# ~/.claude/settings.json — MERGED, not replaced.
+#
+# Claude Code writes this file itself: /model, /config and the theme picker
+# all land here. Managing it wholesale would revert the operator's model
+# choice on every apply, so only three keys are managed:
+#
+#   statusLine        — wires the managed ~/.claude/statusline.sh. Without
+#                       this key the script is installed but never runs.
+#   includeCoAuthoredBy false — commits must never carry a Claude co-author
+#                       trailer. Deprecated upstream in favour of attribution,
+#                       set anyway for older clients.
+#   attribution       — both fields empty. An empty string hides attribution
+#                       entirely, and the commit field covers *any trailers*,
+#                       which is what suppresses the Claude-Session line and
+#                       the matching claude.ai link in pull request bodies.
+#
+# Everything else — model, effortLevel, tui, theme, permissions — stays
+# per-machine and is passed through untouched.
+#
+# Degrades to a no-op passthrough when python3 is missing or the existing
+# file is unparseable (never truncate a working config).
+set -u
+input=$(cat)
+
+command -v python3 >/dev/null 2>&1 || { printf '%s' "$input"; exit 0; }
+
+printf '%s' "$input" | python3 -c '
+import json, sys
+
+raw = sys.stdin.read().strip()
+if raw:
+    try:
+        cfg = json.loads(raw)
+    except ValueError:
+        sys.stdout.write(raw)   # unparseable: hand it back verbatim
+        sys.exit(0)
+    if not isinstance(cfg, dict):
+        sys.stdout.write(raw)
+        sys.exit(0)
+else:
+    cfg = {}
+
+cfg["statusLine"] = {
+    "type": "command",
+    "command": "bash ~/.claude/statusline.sh",
+    "padding": 0,
+}
+cfg["includeCoAuthoredBy"] = False
+cfg["attribution"] = {"commit": "", "pr": ""}
+
+json.dump(cfg, sys.stdout, indent=2)
+sys.stdout.write("\n")
+'

@@ -1,0 +1,102 @@
+# Shell completion
+if ! shopt -oq posix; then
+  if [ -f /opt/homebrew/etc/bash_completion ]; then
+    . /opt/homebrew/etc/bash_completion
+  elif [ -f /usr/local/etc/bash_completion ]; then
+    . /usr/local/etc/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
+# LLVM
+export LDFLAGS="-L/opt/homebrew/opt/llvm/lib"
+export CPPFLAGS="-I/opt/homebrew/opt/llvm/include"
+
+# GO
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/src/go
+
+# k8s
+export KUBECONFIG=$HOME/.kube/config
+
+# NVM
+export NVM_DIR="$HOME/.nvm"
+
+# Android SDK
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+
+# Cocoa pods
+export GEM_HOME=$HOME/.gem
+
+# Mojo
+export MODULAR_HOME="$HOME/.modular"
+
+# PATH mutations (guarded to avoid duplicates in nested shells)
+if [ -z "${BASH_PATH_MUTATED:-}" ]; then
+  export BASH_PATH_MUTATED=1
+
+  # Homebrew
+  export PATH="/opt/homebrew/bin:$PATH"
+
+  # Add .local/bin to PATH
+  export PATH="$HOME/.local/bin:$PATH"
+
+  # LLVM
+  export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+
+  # Rust
+  [ -f "$HOME/.cargo/env" ] && . "$HOME/.cargo/env"
+
+  # GO
+  export PATH="$GOPATH/bin:$PATH"
+
+  # Android SDK
+  export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+
+  # Cocoa pods
+  export PATH=$GEM_HOME/bin:$PATH
+
+  # Mojo
+  export PATH="$HOME/.modular/pkg/packages.modular.com_mojo/bin:$PATH"
+
+  # LM Studio
+  export PATH="$PATH:$HOME/.lmstudio/bin"
+
+  # opencode
+  export PATH="$HOME/.opencode/bin:$PATH"
+fi
+
+# Shell functions & completions (must load every shell, not just first)
+# FZF
+[ -f ~/.fzf.bash ] && source ~/.fzf.bash
+
+# NVM — lazy: sourcing nvm.sh costs ~40ms/shell resolving the default alias.
+# Fast path: cached default-node bin dir straight onto PATH; the real nvm.sh
+# loads on first `nvm` use. Cache refreshes when the default alias changes.
+__nvm_cache="$HOME/.cache/nvm-default-bin"
+if [ -r "$__nvm_cache" ] && [ "$__nvm_cache" -nt "$NVM_DIR/alias/default" ] \
+   && [ -d "$(cat "$__nvm_cache")" ]; then
+    PATH="$(cat "$__nvm_cache"):$PATH"
+    nvm() {
+        unset -f nvm
+        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+        nvm "$@"
+    }
+else
+    [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && . "$NVM_DIR/bash_completion"
+    command -v node >/dev/null 2>&1 \
+        && { mkdir -p "$HOME/.cache"; dirname "$(command -v node)" > "$__nvm_cache"; }
+fi
+
+# OrbStack CLI integration. Its init appends to PATH unconditionally, so
+# re-sourcing accumulates duplicates — hence the exported guard, which a nested
+# shell inherits along with the PATH itself. Nothing is lost by skipping the
+# re-source: the script defines no functions, and its completion line is inert
+# (tests the bash-completion v1 variable, and sources into a subshell).
+if [ -z "${ORBSTACK_INIT_DONE:-}" ] && [ -r "$HOME/.orbstack/shell/init.bash" ]; then
+    export ORBSTACK_INIT_DONE=1
+    source "$HOME/.orbstack/shell/init.bash" 2>/dev/null || :
+fi

@@ -1,0 +1,52 @@
+# Invoke Yazi
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	command yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ "$cwd" != "$PWD" ] && [ -d "$cwd" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+# Brew Upgrade with fzf
+bup() {
+  local upd=$(brew leaves | eval "fzf ${FZF_DEFAULT_OPTS} -m --header='[brew:update]'")
+
+  if [[ $upd ]]; then
+    for prog in $(echo $upd)
+    do brew upgrade $prog
+    done
+  fi
+}
+
+verilator-docker() {
+  docker run -ti -v ${PWD}:/work --user $(id -u):$(id -g) verilator/verilator:$1 "${@:2}"
+}
+
+# cd with fzf
+fcd() {
+    cd "$(find ~ -maxdepth 5 -not -path '*/\.git/*' -type d | fzf --height 40% --reverse)"
+}
+# Check if binary exists in path
+has() {
+  hash "$1" 2>/dev/null
+  return $?
+}
+
+# Tmux wrapper with fzf for selecting sessions
+tm() {
+# check that tmux is installed
+if command -v tmux > /dev/null; then
+  [[ -n "$TMUX" ]] && change="switch-client" || change="attach-session"
+  if [ $1 ]; then
+    tmux $change -t "$1" 2>/dev/null || (tmux new-session -d -s $1 && tmux $change -t "$1"); return
+  fi
+  session=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | fzf --exit-0) &&  tmux $change -t "$session" || tmux new -s alpha -n main
+fi
+}
+
+tmux() {
+  if [ -n "$TMUX" ]; then
+    TMUX_NESTED=1 command tmux "$@"
+  else
+    command tmux "$@"
+  fi
+}

@@ -1,11 +1,19 @@
 # AeroSpace Configuration
 # Streamlined 3-workspace setup: W (Work), E (Entertainment), Q (Comms)
 
+config-version = 2
+
+# Under config-version = 2 the fallback is an empty array; v1 inferred this from
+# the workspace bindings below. Listed explicitly so Q/W/E survive being empty.
+persistent-workspaces = ['Q', 'W', 'E']
+
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
 after-startup-command = []
 
 # Start AeroSpace at login
 start-at-login = true
+
+auto-reload-config = true
 
 # Normalizations. See: https://nikitabobko.github.io/AeroSpace/guide#normalization
 enable-normalization-flatten-containers = true
@@ -108,18 +116,28 @@ run = 'move-node-to-workspace W'
 if.app-id = 'com.apple.finder'
 run = 'layout floating'
 
-# Thunderbird: main window tiles, everything else floats (compose, dialogs,
-# attachment pickers). The main window is the only one carrying the
-# "Mozilla Thunderbird" title suffix - verified against the running app.
-# ORDER MATTERS: AeroSpace runs the first matching callback and stops, so the
-# specific main-window rule must come before the catch-all.
+# Thunderbird: the main window TILES (AeroSpace's default), and only windows we
+# can POSITIVELY identify as popups float.
+#
+# The obvious rule - "tile the window whose title says Thunderbird, float the
+# rest" - does NOT work, and floated the main window on 2026-08-09. The main
+# window's title follows the active tab and often has no app name at all:
+#     mail tab      "Inbox - user@gmail.com"
+#     calendar tab  "16 Aug - 12 Sep 2026 - Mozilla Thunderbird"
+# and an opened message window is "<Subject> - <account>", i.e. the SAME shape
+# as the mail-tab main window. No substring separates them.
+#
+# So: default to TILE, float only known popups. This fails in the recoverable
+# direction - an unrecognised popup tiles, and alt-shift-f toggles it - whereas
+# the previous rule floated the main window, which is the annoying direction.
 [[on-window-detected]]
 if.app-id = 'org.mozilla.thunderbird'
-if.window-title-regex-substring = 'Mozilla Thunderbird'
-run = 'layout tiling'
+if.window-title-regex-substring = 'Write: '
+run = 'layout floating'
 
 [[on-window-detected]]
 if.app-id = 'org.mozilla.thunderbird'
+if.window-title-regex-substring = 'Logins - '
 run = 'layout floating'
 
 # E (Entertainment) - Media
@@ -177,12 +195,6 @@ alt-shift-f = 'layout floating tiling'
 
 # Float + center via Raycast (toggle float, then Raycast centers it)
 alt-c = ['layout floating', 'exec-and-forget open raycast://extensions/raycast/window-management/center']
-
-# Quick 1/3 - 2/3 splits (for side-by-side stacks)
-alt-1 = 'exec-and-forget open raycast://extensions/raycast/window-management/first-third'
-alt-2 = 'exec-and-forget open raycast://extensions/raycast/window-management/first-two-thirds'
-alt-3 = 'exec-and-forget open raycast://extensions/raycast/window-management/last-two-thirds'
-alt-4 = 'exec-and-forget open raycast://extensions/raycast/window-management/last-third'
 
 # Workspaces (3 only: Q, W, E)
 alt-q = 'workspace Q'

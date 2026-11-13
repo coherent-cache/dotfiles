@@ -11,4 +11,7 @@
     url = "https://github.com/neurosnap/zmx/releases/download/v{{ $zmxVer }}/zmx-{{ $zmxVer }}-{{ $os }}-{{ $arch }}.tar.gz"
     path = "zmx"
     executable = true
-    refreshPeriod = "168h"
+    # No refreshPeriod: the URL pins the version, so a periodic re-download only
+    # fetches the same file again. chezmoi caches by URL, so bumping $zmxVer still
+    # downloads the new release. (Some networks stall TLS to GitHub's release
+    # host past chezmoi's 10 s handshake limit, which made every apply fail.)

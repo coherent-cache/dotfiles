@@ -1,6 +1,9 @@
 .DS_Store
 **/.DS_Store
 README.md
+# keyboard firmware layouts, loaded with Vial, not installed into $HOME
+keyboards
+keyboards/**
 
 # written by the tools themselves, not managed here
 .claude/.statusline_tokens
@@ -16,4 +19,7 @@ README.md
 .config/alacritty/**
 .config/karabiner
 .config/karabiner/**
+# variant T keys are Mac-only for now (lap2 keeps its own Herdr keys)
+.config/herdr
+.config/herdr/**
 {{- end }}

@@ -1,8 +1,10 @@
-# Keymap approved 2026-11-05 (RBK): tmux-familiar, source ~/src/threads/docs/herdr-keymap-candidate-20261105.toml
+# Keymap: tmux-familiar (2026-11-05), variant T (2026-11-25): Option+arrows panes, Option+Shift+←/→ tabs, Cmd+U/O/I/K agents.
 onboarding = false
 
 [ui]
 status_indicators = "symbols"
+# Cmd+U (next_agent) walks the agent panel in this order: blocked and done agents first.
+agent_panel_sort = "priority"
 
 [ui.toast]
 delivery = "herdr"
@@ -27,12 +29,15 @@ prefix = "ctrl+a"
 split_horizontal = "prefix+minus"
 split_vertical = ["prefix+backslash", "prefix+v"]
 
-# Pane focus: tmux h/j/k/l; ctrl+alt+arrows replaces bare M-arrows (Alt+Left/Right stays word jump).
-focus_pane_left = ["prefix+h", "prefix+left", "ctrl+alt+left"]
-focus_pane_down = ["prefix+j", "prefix+down", "ctrl+alt+down"]
-focus_pane_up = ["prefix+k", "prefix+up", "ctrl+alt+up"]
-focus_pane_right = ["prefix+l", "prefix+right", "ctrl+alt+right"]
-last_pane = "prefix+tab"
+# Pane focus: your tmux M-arrows (bind -n) plus h/j/k/l. Word jump inside Herdr is open (desktop design, 2026-11-26).
+focus_pane_left = ["prefix+h", "prefix+left", "alt+left"]
+focus_pane_down = ["prefix+j", "prefix+down", "alt+down"]
+focus_pane_up = ["prefix+k", "prefix+up", "alt+up"]
+focus_pane_right = ["prefix+l", "prefix+right", "alt+right"]
+# Back to where you were, across workspaces (tmux Tab = last-window).
+last_pane = ["prefix+tab", "cmd+o"]
+# Next agent in the sidebar (blocked/done first, see ui.agent_panel_sort).
+next_agent = "cmd+u"
 cycle_pane_next = "prefix+o"
 cycle_pane_previous = "prefix+shift+tab"
 open_notification_target = "prefix+shift+o"
@@ -63,8 +68,8 @@ switch_tab = "prefix+1..9"
 # Workspaces = tmux sessions.
 new_workspace = ["prefix+ctrl+c", "prefix+shift+n"]
 rename_workspace = ["prefix+$", "prefix+shift+w"]
-previous_workspace = "prefix+("
-next_workspace = "prefix+)"
+previous_workspace = ["prefix+(", "cmd+i"]
+next_workspace = ["prefix+)", "cmd+k"]
 workspace_picker = "prefix+w"
 goto = ["prefix+s", "prefix+ctrl+f", "prefix+g"]
 settings = "prefix+shift+s"

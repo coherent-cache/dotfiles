@@ -1,0 +1,106 @@
+# Keymap: tmux-familiar (2026-11-05), variant T (2026-11-25): Option+arrows panes, Option+Shift+←/→ tabs, Cmd+U/O/I/K agents.
+onboarding = false
+
+[ui]
+status_indicators = "symbols"
+# Cmd+U (next_agent) walks the agent panel in this order: blocked and done agents first.
+agent_panel_sort = "priority"
+
+[ui.toast]
+delivery = "herdr"
+
+# Workstream brief under each agent row; tokens pushed by `threads sync-herdr` (~/src/threads).
+[ui.sidebar.agents]
+rows = [
+  ["state_icon", "machine", "workspace", "tab"],
+  ["agent", { token = "$wsstate", dim = true }],
+  [{ token = "$next", dim = true }],
+]
+
+[theme]
+name = "catppuccin"
+auto_switch = false
+
+[keys]
+# tmux prefix C-a; C-a C-a sends a literal C-a to the pane (herdr native).
+prefix = "ctrl+a"
+
+# Splits: tmux `-` stacked, `\` side by side.
+split_horizontal = "prefix+minus"
+split_vertical = ["prefix+backslash", "prefix+v"]
+
+# Pane focus: your tmux M-arrows (bind -n) plus h/j/k/l. Word jump inside Herdr is open (desktop design, 2026-11-26).
+focus_pane_left = ["prefix+h", "prefix+left", "alt+left"]
+focus_pane_down = ["prefix+j", "prefix+down", "alt+down"]
+focus_pane_up = ["prefix+k", "prefix+up", "alt+up"]
+focus_pane_right = ["prefix+l", "prefix+right", "alt+right"]
+# Back to where you were, across workspaces (tmux Tab = last-window).
+last_pane = ["prefix+tab", "cmd+o"]
+# Next agent in the sidebar (blocked/done first, see ui.agent_panel_sort).
+next_agent = "cmd+u"
+cycle_pane_next = "prefix+o"
+cycle_pane_previous = "prefix+shift+tab"
+open_notification_target = "prefix+shift+o"
+
+# Resize: tmux H/J/K/L one-shot; prefix+ctrl+r persistent resize mode (h/j/k/l, Esc).
+resize_pane_left = ["prefix+shift+h", "ctrl+alt+shift+left"]
+resize_pane_down = ["prefix+shift+j", "ctrl+alt+shift+down"]
+resize_pane_up = ["prefix+shift+k", "ctrl+alt+shift+up"]
+resize_pane_right = ["prefix+shift+l", "ctrl+alt+shift+right"]
+resize_mode = "prefix+ctrl+r"
+
+# Swap: tmux `<` `>`; vertical swaps off AeroSpace's global alt-j/k/l.
+swap_pane_left = "prefix+<"
+swap_pane_right = "prefix+>"
+swap_pane_down = "prefix+ctrl+j"
+swap_pane_up = "prefix+ctrl+k"
+
+# Zoom: tmux z and oh-my-tmux `+`.
+zoom = ["prefix+z", "prefix+plus"]
+
+# Tabs = tmux windows. n/p were unbound in your tmux; C-h/C-l and M-S-Left/Right kept.
+new_tab = "prefix+c"
+rename_tab = ["prefix+comma", "prefix+shift+t"]
+previous_tab = ["prefix+ctrl+h", "alt+shift+left"]
+next_tab = ["prefix+ctrl+l", "alt+shift+right"]
+switch_tab = "prefix+1..9"
+
+# Workspaces = tmux sessions.
+new_workspace = ["prefix+ctrl+c", "prefix+shift+n"]
+rename_workspace = ["prefix+$", "prefix+shift+w"]
+previous_workspace = ["prefix+(", "cmd+i"]
+next_workspace = ["prefix+)", "cmd+k"]
+workspace_picker = "prefix+w"
+goto = ["prefix+s", "prefix+ctrl+f", "prefix+g"]
+settings = "prefix+shift+s"
+detach = ["prefix+d", "prefix+q"]
+
+# Copy mode: tmux [ and oh-my-tmux Enter (vi keys are native).
+copy_mode = ["prefix+[", "prefix+enter"]
+
+# Reload: tmux r.
+reload_config = ["prefix+r", "prefix+shift+r"]
+
+# Owner decision 2026-10-10: no close shortcuts (context menu / CLI only). oh-my-tmux C-l clear -> prefix+C.
+clear_pane = "prefix+shift+c"
+close_pane = ""
+close_tab = ""
+
+# tmux `!` break-pane.
+[[keys.command]]
+key = "prefix+!"
+type = "shell"
+command = "\"$HERDR_BIN_PATH\" pane move \"$HERDR_ACTIVE_PANE_ID\" --new-tab --focus"
+description = "break pane into new tab"
+
+[[keys.command]]
+key = "prefix+t"
+type = "plugin_action"
+command = "rbkv2.threads.board"
+description = "threads: workstream board"
+
+[[keys.command]]
+key = "prefix+m"
+type = "plugin_action"
+command = "nicosuave.memex.palette"
+description = "memex: session palette"

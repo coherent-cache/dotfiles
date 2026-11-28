@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# desk-follow: show the browser window that belongs to the Rex session you select.
+#
+#   desk-follow run   watch the focused Rex window; when its session changes, bring the
+#                     window tied to that session to the front of its stack, then give
+#                     focus back to Rex. Windows are never moved or hidden.
+#   desk-follow tag   tie the focused window to the session of the last focused Rex window
+#   desk-follow list  print the ties
+#
+# The session name comes from the Rex window title, "<tab> - <session>".
+# shortcut: polls once a second, since no Rex or AeroSpace event reports a session change;
+# move to an event when one exists.
+set -u
+STATE="${DESK_FOLLOW_STATE:-$HOME/.local/state/desk-follow}"
+REX_ID="com.superlogical.rex"
+INTERVAL="${DESK_FOLLOW_INTERVAL:-1}"
+mkdir -p "$STATE"
+MAP="$STATE/map"        # lines: <session><TAB><window-id>
+LAST="$STATE/last"      # <session><TAB><rex-window-id>
+
+focused() { aerospace list-windows --focused --format '%{app-bundle-id}|%{window-id}|%{window-title}' 2>/dev/null; }
+
+follow() { # $1 session, $2 rex window id
+  local wid
+  wid=$(awk -F'\t' -v s="$1" '$1 == s { print $2 }' "$MAP" 2>/dev/null | tail -1)
+  [ -n "$wid" ] || return 0
+  # Only on the desk in view: never pull focus to another desk.
+  aerospace list-windows --workspace focused --format '%{window-id}' 2>/dev/null | grep -qx "$wid" || return 0
+  aerospace focus --window-id "$wid" && aerospace focus --window-id "$2"
+}
+
+case "${1:-}" in
+  run)
+    prev=""
+    while :; do
+      IFS='|' read -r app wid title <<<"$(focused)"
+      if [ "$app" = "$REX_ID" ] && [[ "$title" == *" - "* ]]; then
+        session="${title##* - }"
+        printf '%s\t%s\n' "$session" "$wid" >"$LAST"
+        if [ "$session" != "$prev" ]; then
+          [ -n "$prev" ] && follow "$session" "$wid"
+          prev="$session"
+        fi
+      fi
+      sleep "$INTERVAL"
+    done
+    ;;
+  tag)
+    IFS='|' read -r app wid _ <<<"$(focused)"
+    IFS=$'\t' read -r session _ <"$LAST" 2>/dev/null || { echo "desk-follow: focus a Rex window first" >&2; exit 1; }
+    [ -n "${wid:-}" ] && [ "$app" != "$REX_ID" ] || { echo "desk-follow: focus the browser window to tie" >&2; exit 1; }
+    { grep -v "^$session"$'\t' "$MAP" 2>/dev/null; printf '%s\t%s\n' "$session" "$wid"; } >"$MAP.new" && mv "$MAP.new" "$MAP"
+    echo "$session -> window $wid"
+    ;;
+  list) cat "$MAP" 2>/dev/null ;;
+  *) echo "usage: desk-follow run|tag|list" >&2; exit 2 ;;
+esac

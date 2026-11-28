@@ -1,13 +1,16 @@
 # AeroSpace Configuration
-# Streamlined 3-workspace setup: W (Work), E (Entertainment), Q (Comms)
+# Task desks: one workspace per task (dev, agents, work, research, home), plus Q (Talk) and E (Media).
+# A desk holds a Rex window and the browser windows of that task. Names equal the Rex session names;
+# 'home' holds the Rex sessions household, homelab and personal.
 
 config-version = 2
 
-# Keep the three workspaces alive under the v2 empty-list default.
-persistent-workspaces = ['Q', 'W', 'E']
+# Keep the desks alive under the v2 empty-list default.
+persistent-workspaces = ['dev', 'agents', 'work', 'research', 'home', 'Q', 'E']
 
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
-after-startup-command = []
+# desk-follow shows the browser window of the Rex session you select (see ~/.local/bin/desk-follow).
+after-startup-command = ['exec-and-forget ~/.local/bin/desk-follow run']
 
 # Start AeroSpace at login
 start-at-login = true
@@ -50,13 +53,16 @@ outer.right = [
 # Workspace-to-monitor assignment removed to allow move-workspace-to-monitor
 # to work freely. Apps still land on the correct workspace via on-window-detected
 # rules below. Place workspaces on monitors manually with alt-shift-tab or
-# alt-q/w/e after startup.
+# alt-1..5 / alt-q / alt-e after startup.
 
 # ============================================================================
 # App auto-assignment rules
 # ============================================================================
 
-# Q (Comms) - Communication & meetings
+# Rex and Helium have no rule: each has one app id for all its windows, so a new window
+# opens on the desk you are on. Move it with alt-shift-<desk key>.
+
+# Q (Talk) - communication, meetings, notes
 [[on-window-detected]]
 if.app-name-regex-substring = 'WhatsApp'
 run = 'move-node-to-workspace Q'
@@ -77,38 +83,30 @@ run = 'move-node-to-workspace Q'
 if.window-title-regex-substring = 'meet\.google\.com'
 run = 'move-node-to-workspace Q'
 
-# W (Work) - Coding & research
+[[on-window-detected]]
+if.app-id = 'com.electron.logseq'
+run = 'move-node-to-workspace Q'
+
+# dev - editors and other terminals
 [[on-window-detected]]
 if.app-name-regex-substring = 'Zed'
-run = 'move-node-to-workspace W'
+run = 'move-node-to-workspace dev'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Alacritty'
-run = 'move-node-to-workspace W'
+run = 'move-node-to-workspace dev'
 
 [[on-window-detected]]
 if.app-id = 'net.kovidgoyal.kitty'
-run = 'move-node-to-workspace W'
+run = 'move-node-to-workspace dev'
 
 [[on-window-detected]]
 if.app-name-regex-substring = 'Cursor'
-run = 'move-node-to-workspace W'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Logic Pro'
-run = 'move-node-to-workspace W'
+run = 'move-node-to-workspace dev'
 
 [[on-window-detected]]
 if.app-id = 'ai.opencode.desktop'
-run = 'move-node-to-workspace W'
-
-[[on-window-detected]]
-if.app-name-regex-substring = 'Firefox'
-run = 'move-node-to-workspace W'
-
-[[on-window-detected]]
-if.app-id = 'com.electron.logseq'
-run = 'move-node-to-workspace W'
+run = 'move-node-to-workspace dev'
 
 # Finder always floating
 [[on-window-detected]]
@@ -132,16 +130,13 @@ if.app-id = 'org.mozilla.thunderbird'
 if.window-title-regex-substring = '^(Calendar Reminders|[0-9]+ Reminders?)$'
 run = 'layout floating'
 
-# E (Entertainment) - Media
-# Agent-owned browser windows are explicitly paired with their terminal after opening;
-# keep this default for personal Helium windows. Workspace membership alone does not
-# guarantee a split: verify horizontal tiling and actual visible window bounds.
+# E (Media)
 [[on-window-detected]]
-if.app-name-regex-substring = 'Helium'
+if.app-id = 'com.spotify.client'
 run = 'move-node-to-workspace E'
 
 [[on-window-detected]]
-if.app-id = 'com.spotify.client'
+if.app-name-regex-substring = 'Logic Pro'
 run = 'move-node-to-workspace E'
 
 # ============================================================================
@@ -192,20 +187,35 @@ alt-shift-f = 'layout floating tiling'
 alt-c = ['layout floating', 'exec-and-forget open raycast://extensions/raycast/window-management/center']
 
 
-# Workspaces (3 only: Q, W, E)
+# Desks
+alt-1 = 'workspace dev'
+alt-2 = 'workspace agents'
+alt-3 = 'workspace work'
+alt-4 = 'workspace research'
+alt-5 = 'workspace home'
 alt-q = 'workspace Q'
-alt-w = 'workspace W'
 alt-e = 'workspace E'
 
-# Move window to workspace and switch
+# Move window to desk and switch
+alt-shift-1 = ['move-node-to-workspace dev', 'workspace dev']
+alt-shift-2 = ['move-node-to-workspace agents', 'workspace agents']
+alt-shift-3 = ['move-node-to-workspace work', 'workspace work']
+alt-shift-4 = ['move-node-to-workspace research', 'workspace research']
+alt-shift-5 = ['move-node-to-workspace home', 'workspace home']
 alt-shift-q = ['move-node-to-workspace Q', 'workspace Q']
-alt-shift-w = ['move-node-to-workspace W', 'workspace W']
 alt-shift-e = ['move-node-to-workspace E', 'workspace E']
 
-# Move window to workspace (stay on current)
+# Move window to desk (stay on current)
+alt-ctrl-shift-1 = 'move-node-to-workspace dev'
+alt-ctrl-shift-2 = 'move-node-to-workspace agents'
+alt-ctrl-shift-3 = 'move-node-to-workspace work'
+alt-ctrl-shift-4 = 'move-node-to-workspace research'
+alt-ctrl-shift-5 = 'move-node-to-workspace home'
 alt-ctrl-shift-q = 'move-node-to-workspace Q'
-alt-ctrl-shift-w = 'move-node-to-workspace W'
 alt-ctrl-shift-e = 'move-node-to-workspace E'
+
+# Tie the focused browser window to the Rex session shown in this desk's Rex window
+alt-shift-b = 'exec-and-forget ~/.local/bin/desk-follow tag'
 
 # Workspace navigation
 alt-tab = 'workspace-back-and-forth'
